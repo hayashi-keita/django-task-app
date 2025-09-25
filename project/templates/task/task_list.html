@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}タスク一覧{% endblock %}
+
+{% block contents %}
+<div class="container mt-4">
+    <h2 class="mb-4">タスク一覧</h2>
+    <a href="{% url 'project:task_create' %}" class="btn btn-primary btn-sm">新規作成</a>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>タイトル</th>
+                <th>担当者</th>
+                <th>ステータス</th>
+                <th>納期</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for obj in object_list %}
+                <tr>
+                    <td>{{ obj.title }}</td>
+                    <td>{{ obk.assigned_to }}</td>
+                    <td>{{ obj.get_status_display }}</td>
+                    <td>{{ obj.due_date }}</td>
+                    <td>
+                        <a href="{% url 'project:task_update' obj.pk %}" class="btn btn-sm btn-primary">編集</a>
+                        <a href="{% url 'project:task_delete' obj.pk %}" class="btn btn-sm btn-danger">削除</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">タスクはありません。</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

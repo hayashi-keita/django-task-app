@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}プロフィール{% endblock %}
+
+{% block contents %}
+<div class="container mt-4">
+    <h2 class="mb-4">{{ object.full_name }} のプロフィール</h2>
+    <p>ユーザー名：{{ object.username }}</p>
+    <p>メール：{{ object.email }}</p>
+    <p>部署：{{ object.department }}</p>
+
+    <a href="{% url 'accounts:profile_update' object.pk %}" class="btn btn-primary">編集</a>
+    <a href="{% url 'accounts:profile_delete' object.pk %}" class="btn btn-danger">削除</a>
+</div>
+{% endblock %}

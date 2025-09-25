@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}タスク詳細{% endblock %}
+
+{% block contents %}
+<div class="container mt-4">
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h2 class="card-title mb-4">{{ object.title }}</h2>
+            
+            <p><strong>担当者：</strong>{{ object.assigned_to }}</p>
+            <p><strong>ステータス：</strong>{{ object.get_status_display }}</p>
+            <p><strong>期限：</strong>{{ object.due_date }}</p>
+            <p class="text-muted"><i>{{ object.description }}</i></p>
+        
+            <a href="{% url 'project:task_update' object.pk %}" class="btn btn-primary btn-sm me-2">編集</a>
+            <a href="{% url 'project:task_delete' object.pk %}" class="btn btn-danger btn-sm">削除</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
