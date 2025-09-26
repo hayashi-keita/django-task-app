@@ -10,6 +10,8 @@
     <p>部署：{{ object.department }}</p>
 
     <a href="{% url 'accounts:profile_update' object.pk %}" class="btn btn-primary">編集</a>
-    <a href="{% url 'accounts:profile_delete' object.pk %}" class="btn btn-danger">削除</a>
+    {% if request.user.is_superuser %}
+        <a href="{% url 'accounts:profile_delete' object.pk %}" class="btn btn-danger">削除</a>
+    {% endif %}
 </div>
 {% endblock %}

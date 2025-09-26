@@ -24,7 +24,7 @@ class Task(models.Model):
     description = models.TextField(blank=True, verbose_name='詳細')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='todo')
     assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, blank=True, null=True, related_name='assigned_tasks')
-    due_date = models.DateField(blank=True, null=True)
+    due_date = models.DateField(blank=True, null=True, verbose_name='納期')
     sort_order = models.IntegerField(default=0)
     created_at = models.DateTimeField(default=timezone.now)     
     updated_at = models.DateTimeField(auto_now=True)
@@ -43,3 +43,4 @@ class TaskAttachment(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='attachments')
     file = models.FileField(upload_to='task_files/')
     uploaded_at = models.DateTimeField(default=timezone.now)
+

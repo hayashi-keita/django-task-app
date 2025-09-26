@@ -5,7 +5,9 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, D
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
+from accounts.models import CustomUser
 from .models import Project, Task
+from notification.utils import create_notification
 from .forms import ProjectForm, TaskForm, TaskInprojectForm
 import json
 
@@ -55,7 +57,7 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
         context['q'] = q
         context['status'] = status
         context['assigned_to'] = assigned_to
-        context['users'] = User.objects.all()
+        context['users'] = CustomUser.objects.all()
         return context
 
 class ProjectUpdateView(LoginRequiredMixin, UpdateView):
@@ -98,6 +100,16 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
     form_class = TaskForm
     success_url = reverse_lazy('project:task_list')
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        if self.object.assigned_to:
+            create_notification(
+                user=self.object.assigned_to,
+                message=f'新しいタスクが割り当てられました：{self.object.title}',
+                url=self.get_success_url(),
+            )
+        return response
+
 class TaskCreateInprojectView(LoginRequiredMixin, CreateView):
     model = Task
     template_name = 'task/task_form.html'
@@ -106,7 +118,15 @@ class TaskCreateInprojectView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         project = get_object_or_404(Project, pk=self.kwargs['project_pk'])
         form.instance.project = project
-        return super().form_valid(form)
+        response = super().form_valid(form)
+
+        if self.object.assigned_to:
+            create_notification(
+                user=self.object.assigned_to,
+                message=f'新しいタスクが割り当てられました：{self.object.title}', 
+                url=self.get_success_url(),  
+            )
+        return response
     
     def get_success_url(self):
         return reverse('project:project_detail', kwargs={'pk': self.object.project.pk})
@@ -123,6 +143,16 @@ class TaskUpdateView(LoginRequiredMixin,UpdateView):
             raise PermissionDenied
         return obj
     
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        if self.object.assigned_to:
+            create_notification(
+                user=self.object.assigned_to,
+                message=f'タスクが更新されました：{self.object.title}',
+                url=self.get_success_url(),
+            )
+        return response
+    
     def get_success_url(self):
         return reverse('project:project_detail', kwargs={'pk': self.object.project.pk})
 
@@ -135,6 +165,16 @@ class TaskDeleteView(LoginRequiredMixin, DeleteView):
         if obj.assigned_to is None or obj.assigned_to != self.request.user:
             raise PermissionDenied
         return obj
+    
+    def delete(self, request, *args, **kwargs):
+        obj = self.get_object()
+        if obj.assigned_to:
+            create_notification(
+                user=self.obj.assigned_to,
+                message=f'タスク「{obj.title}」が削除されました',
+                url=''
+            )
+        return super().delete(request, *args, **kwargs)
     
     def get_success_url(self):
         return reverse('project:project_detail', kwargs={'pk': self.object.project.pk})

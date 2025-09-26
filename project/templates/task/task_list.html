@@ -4,11 +4,11 @@
 
 {% block contents %}
 <div class="container mt-4">
-    <h2 class="mb-4">タスク一覧</h2>
+    <h2 class="mb-4">Myタスク一覧</h2>
     <a href="{% url 'project:task_create' %}" class="btn btn-primary btn-sm">新規作成</a>
 
-    <table class="table table-striped">
-        <thead>
+    <table class="table table-striped mt-4">
+        <thead class="table-dark">
             <tr>
                 <th>タイトル</th>
                 <th>担当者</th>
