@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}グラフ{% endblock %}
+
+{% block contents %}
+<div class="container mt-4">
+    <h3 class="mb-4">プロジェクト達成状況</h3>
+    <canvas id="achievementChart" width="400" height="200"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('achievementChart').getContext('2d');
+
+const achievementChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: {{ labels|safe }}, // X軸ラベル
+        datasets: [{
+            label: '完了率(%)',
+            data: {{ data|safe }}, // Y軸データ
+            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

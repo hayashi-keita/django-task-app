@@ -4,14 +4,19 @@
 
 {% block contents %}
 <div class="container mt-4">
-    <h2 class="mb-4">{{ object.full_name }} のプロフィール</h2>
+    <h2 class="mb-4">{{ object.full_name|default:object.username }} のプロフィール</h2>
     <p>ユーザー名：{{ object.username }}</p>
     <p>メール：{{ object.email }}</p>
     <p>部署：{{ object.department }}</p>
-
-    <a href="{% url 'accounts:profile_update' object.pk %}" class="btn btn-primary">編集</a>
-    {% if request.user.is_superuser %}
-        <a href="{% url 'accounts:profile_delete' object.pk %}" class="btn btn-danger">削除</a>
+    {% if object.image %}
+        <img src="{{ object.image.url }}" width="300" height="300" alt="画像" class="img-thombnail mb-2">
     {% endif %}
+    
+    <div class="d-flex">
+        <a href="{% url 'accounts:profile_update' object.pk %}" class="btn btn-primary me-3">編集</a>
+        {% if request.user.is_superuser %}
+            <a href="{% url 'accounts:profile_delete' object.pk %}" class="btn btn-danger">削除</a>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

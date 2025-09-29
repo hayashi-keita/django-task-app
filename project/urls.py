@@ -22,4 +22,6 @@ urlpatterns = [
     # タスクの順番替え
     path('task/sort/', views.TaskSortUpdateView.as_view(), name='task_sort'),
     path('task/toggle_complete/', views.TaskToggleCompleteView.as_view(), name='task_toggle_complete'),
+    # グラフ
+    path('chart/', views.ProjectAchienementChartView.as_view(), name='project_chart'),
 ]

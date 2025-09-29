@@ -1,94 +1,93 @@
-{% extends 'base.html' %}
+    {% extends 'base.html' %}
 
-{% block title %}プロジェクト詳細{% endblock %}
+    {% block title %}プロジェクト詳細{% endblock %}
 
-{% block contents %}
-<div class="container mt-4">
-    <h2 class="mb-4">{{ object.name }}</h2>
-    <a href="{% url 'project:task_create_in_project' object.pk %}" class="btn btn-primary mb-3">タスク追加</a>
-
-    <form method="get" class="mb-3 d-flex gap-2">
-        <input type="text" name="q" placeholder="タイトル検索" value="{{ q|default_if_none:'' }}" class="form-control">
-        <select name="status" class="form-select">
-            <option value="" >すべてのステータス</option>
-            <option value="todo" {% if status == "todo" %}selected{% endif %}>未着手</option>
-            <option value="doing" {% if status == "doing" %}selected{% endif %}>進行中</option>
-            <option value="done" {% if status == "done" %}selected{% endif %}>完了</option>
-        </select>
-        <select name="assigned_to" class="form-select">
-            <option value="">全ての担当者</option>
-            {% for user in users %}
-                <option value="{{ user.pk }}" {% if assigned_to|default_if_none:'' == user.pk|stringformat:'s' %}selected{% endif %}>
-                    {{ user.username }}
-                </option>
+    {% block contents %}
+    <div class="container mt-4">
+        <h2 class="mb-4">{{ object.name }}</h2>
+        <a href="{% url 'project:task_create_in_project' object.pk %}" class="btn btn-primary mb-3">タスク追加</a>
+        <form method="get" class="mb-3 d-flex gap-2">
+            <input type="text" name="q" placeholder="タイトル検索" value="{{ q|default_if_none:'' }}" class="form-control">
+            <select name="status" class="form-select">
+                <option value="" >すべてのステータス</option>
+                <option value="todo" {% if status == "todo" %}selected{% endif %}>未着手</option>
+                <option value="doing" {% if status == "doing" %}selected{% endif %}>進行中</option>
+                <option value="done" {% if status == "done" %}selected{% endif %}>完了</option>
+            </select>
+            <select name="assigned_to" class="form-select">
+                <option value="">全ての担当者</option>
+                {% for user in users %}
+                    <option value="{{ user.pk }}" {% if assigned_to|default_if_none:'' == user.pk|stringformat:'s' %}selected{% endif %}>
+                        {{ user.username }}
+                    </option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">検索</button>
+        </form>
+        <ul id="task-list">
+            {% for task in tasks|dictsort:"sort_order" %}
+                <li data-pk="{{ task.pk }}" class="mb-2" {% if task.completed %} style="opacity: 0.5;" {% endif %}>
+                    <span class="task-order"></span>
+                    <input type="checkbox" class="task-complete" {% if task.completed %}checked{% endif %}>
+                    {{ task.title }} - {{ task.status }}
+                    <a href="{% url 'project:task_update' task.pk %}" class="btn btn-primary btn-sm">編集</a>
+                    <a href="{% url 'project:task_delete' task.pk %}" class="btn btn-danger btn-sm">削除</a>
+                </li>
+            {% empty %}
+                <li>タスクが見つかりません。</li>
             {% endfor %}
-        </select>
-        <button type="submit" class="btn btn-primary">検索</button>
-    </form>
-    <ul id="task-list">
-        {% for task in tasks|dictsort:"sort_order" %}
-            <li data-pk="{{ task.pk }}" class="mb-2" {% if task.completed %} style="opacity: 0.5;" {% endif %}>
-                <span class="task-order"></span>
-                <input type="checkbox" class="task-complete" {% if task.completed %}checked{% endif %}>
-                {{ task.title }} - {{ task.status }}
-                <a href="{% url 'project:task_update' task.pk %}" class="btn btn-primary btn-sm">編集</a>
-                <a href="{% url 'project:task_delete' task.pk %}" class="btn btn-danger btn-sm">削除</a>
-            </li>
-        {% empty %}
-            <li>タスクが見つかりません。</li>
-        {% endfor %}
-    </ul>
+        </ul>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-    <script>
-        // 番号更新関数
-        function updateTaskNumbers() {
-            document.querySelectorAll('#task-list li').forEach((li, index) => {
-                const span = li.querySelector('.task-order');
-                span.textContent = index + 1;
-            });
-        }
-        // 初期表示で番号を振る
-        updateTaskNumbers();
-        // Sortable初期化
-        const el = document.getElementById('task-list');
-        const sortable = new Sortable(el, {
-            animation: 150,
-            onEnd: function (evt) {
-                const order = [];
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+        <script>
+            // 番号更新関数
+            function updateTaskNumbers() {
                 document.querySelectorAll('#task-list li').forEach((li, index) => {
-                    // ---------- 番号だけ更新 ----------
                     const span = li.querySelector('.task-order');
                     span.textContent = index + 1;
-                    // サーバーに送る並び情報
-                    order.push({pk: li.dataset.pk, order: index + 1});
-                });
-                // AJAXで順番をサーバーに送信
-                fetch("{% url 'project:task_sort' %}", {
-                    method: "POST",
-                    headers: {'Content-type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
-                    body: JSON.stringify(order)
                 });
             }
-        });
-
-        document.querySelectorAll('.task-complete').forEach(cb => {
-            cb.addEventListener('change', function() {
-                const li = cb.closest('li');
-                const pk = li.dataset.pk;
-                const completed = cb.checked;
-
-                fetch("{% url 'project:task_toggle_complete' %}", {
-                    method: "POST",
-                    headers: {'Content-type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
-                    body: JSON.stringify({ pk: pk, completed: completed })
-                }).then(response => response.json())
-                  .then(data => {
-                        if(data.status === 'ok'){
-                            li.style.opacity = completed ? 0.5 : 1;
-                        }
-                  });
+            // 初期表示で番号を振る
+            updateTaskNumbers();
+            // Sortable初期化
+            const el = document.getElementById('task-list');
+            const sortable = new Sortable(el, {
+                animation: 150,
+                onEnd: function (evt) {
+                    const order = [];
+                    document.querySelectorAll('#task-list li').forEach((li, index) => {
+                        // ---------- 番号だけ更新 ----------
+                        const span = li.querySelector('.task-order');
+                        span.textContent = index + 1;
+                        // サーバーに送る並び情報
+                        order.push({pk: li.dataset.pk, order: index + 1});
+                    });
+                    // AJAXで順番をサーバーに送信
+                    fetch("{% url 'project:task_sort' %}", {
+                        method: "POST",
+                        headers: {'Content-type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+                        body: JSON.stringify(order)
+                    });
+                }
             });
-        });
-    </script>
-{% endblock %}
+
+            document.querySelectorAll('.task-complete').forEach(cb => {
+                cb.addEventListener('change', function() {
+                    const li = cb.closest('li');
+                    const pk = li.dataset.pk;
+                    const completed = cb.checked;
+
+                    fetch("{% url 'project:task_toggle_complete' %}", {
+                        method: "POST",
+                        headers: {'Content-type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+                        body: JSON.stringify({ pk: pk, completed: completed })
+                    }).then(response => response.json())
+                    .then(data => {
+                            if(data.status === 'ok'){
+                                li.style.opacity = completed ? 0.5 : 1;
+                            }
+                    });
+                });
+            });
+        </script>
+    {% endblock %}

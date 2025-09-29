@@ -207,3 +207,30 @@ class TaskToggleCompleteView(LoginRequiredMixin, View):
         task.completed = completed
         task.save()
         return JsonResponse({'status': 'ok'})
+
+# グラフChart.js
+class ProjectAchienementChartView(LoginRequiredMixin, TemplateView):
+    template_name = 'project/project_chart.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        projects = Project.objects.all()
+        labels = []  #　x軸に表示するプロジェクト名
+        data = []    # y軸に表示する完了率（%）
+
+        for project in projects:
+            labels.append(project.name)
+            tasks = project.tasks.all()
+            # exists()はDBに該当するレコードがあるかだけを返す メソッド
+            if tasks.exists():
+                # 完了率 = 完了タスク数 / 全タスク数 * 100
+                completed_count = tasks.filter(completed=True).count()
+                total_count = tasks.count()
+                progress = round(completed_count / total_count * 100, 1)
+            else:
+                progress = 0
+            data.append(progress)
+        
+        context['labels'] = labels
+        context['data'] = data
+        return context

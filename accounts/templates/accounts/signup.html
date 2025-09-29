@@ -5,7 +5,7 @@
 {% block contents %}
 <div class="container mt-4">
     <h2 class="mb-4">ユーザー登録</h2>
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit" class="btn btn-primary">登録</button>
