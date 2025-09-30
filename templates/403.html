@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}アクセス権限なし{% endblock %}
+
+{% block contents %}
+<div class="container mt-5 text-center">
+    <h1 class="display-4 text-danger">403 Forbidden</h1>
+    <p class="lead">このページにアクセスする権限がありません。</p>
+    <a href="{% url 'project:index'%}" class="btn btn-primary mt-3">Topページへ戻る</a>
+</div>
+{% endblock %}

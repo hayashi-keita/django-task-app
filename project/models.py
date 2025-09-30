@@ -41,6 +41,7 @@ class TaskComment(models.Model):
 
 class TaskAttachment(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='attachments')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     file = models.FileField(upload_to='task_files/')
     uploaded_at = models.DateTimeField(default=timezone.now)
 

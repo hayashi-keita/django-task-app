@@ -20,15 +20,15 @@
         <tbody>
             {% for obj in object_list %}
                 <tr>
-                    <td>{{ obj.title }}</td>
-                    <td>{{ obk.assigned_to }}</td>
+                    <td><a href="{% url 'project:task_detail' obj.pk %}">{{ obj.title }}</a></td>
+                    <td>{{ obj.assigned_to }}</td>
                     <td>{{ obj.get_status_display }}</td>
                     <td>{{ obj.due_date }}</td>
                     <td>
                         <a href="{% url 'project:task_update' obj.pk %}" class="btn btn-sm btn-primary">編集</a>
                         <a href="{% url 'project:task_delete' obj.pk %}" class="btn btn-sm btn-danger">削除</a>
                     </td>
-                </tr>
+                </tr>             
             {% empty %}
                 <tr>
                     <td colspan="5" class="text-center">タスクはありません。</td>

@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.models import User
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView, View
@@ -6,10 +6,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
 from accounts.models import CustomUser
-from .models import Project, Task
+from .models import Project, Task, TaskComment, TaskAttachment
 from notification.utils import create_notification
-from .forms import ProjectForm, TaskForm, TaskInprojectForm
+from .forms import ProjectForm, TaskForm, TaskInprojectForm, TaskCommentForm, TaskAttachmentForm
 import json
+
+def custom_permission_denied_view(request, exception):
+    return render(request, '403.html', status=403)
 
 class IndexView(TemplateView):
     template_name = 'index.html'
@@ -188,7 +191,39 @@ class TaskDetailView(LoginRequiredMixin, DetailView):
         if obj.assigned_to is None or obj.assigned_to != self.request.user:
             raise PermissionDenied
         return obj
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['comment_form'] = TaskCommentForm()
+        context['attachment_form'] = TaskAttachmentForm()
+        return context   
 
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    model = TaskComment
+    form_class = TaskCommentForm
+
+    def form_valid(self, form):
+        task = get_object_or_404(Task, pk=self.kwargs['pk'])
+        form.instance.task = task
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse('project:task_detail', kwargs={'pk': self.object.task.pk})
+
+class AttachmentCreateView(LoginRequiredMixin, CreateView):
+    model = TaskAttachment
+    form_class = TaskAttachmentForm
+
+    def form_valid(self, form):
+        attachment = get_object_or_404(Task, pk=self.kwargs['pk'])
+        form.instance.task = attachment
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse('project:task_detail', kwargs={'pk': self.obect.task.pk})
+    
 # AJAXでタスク順序更新
 class TaskSortUpdateView(LoginRequiredMixin, View):
     def post(self, request):

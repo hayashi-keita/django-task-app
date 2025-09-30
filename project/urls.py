@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 
+handler403 = 'project.views.custom_permission_denied_view'
+
 app_name = 'project'
 
 urlpatterns = [
@@ -19,6 +21,8 @@ urlpatterns = [
     path('task/<int:pk>/update/', views.TaskUpdateView.as_view(), name='task_update'),
     path('task/<int:pk>/delete/', views.TaskDeleteView.as_view(), name='task_delete'),
     path('task/<int:pk>/detail/', views.TaskDetailView.as_view(), name='task_detail'),
+    path('task/<int:pk>/comment/', views.CommentCreateView.as_view(), name='comment_create'),
+    path('task/<int:pk>/attachment/', views.AttachmentCreateView.as_view(), name='attachment_create'),
     # タスクの順番替え
     path('task/sort/', views.TaskSortUpdateView.as_view(), name='task_sort'),
     path('task/toggle_complete/', views.TaskToggleCompleteView.as_view(), name='task_toggle_complete'),
