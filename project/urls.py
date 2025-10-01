@@ -22,6 +22,10 @@ urlpatterns = [
     path('task/<int:pk>/delete/', views.TaskDeleteView.as_view(), name='task_delete'),
     path('task/<int:pk>/detail/', views.TaskDetailView.as_view(), name='task_detail'),
     path('task/<int:pk>/comment/', views.CommentCreateView.as_view(), name='comment_create'),
+    path('comment/<int:pk>/update/', views.CommentUpdateView.as_view(), name='comment_update'),
+    path('comment/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='comment_delete'),
+    path('attachment/<int:pk>/update/', views.AttachmentUpdateView.as_view(), name='attachment_update'),
+    path('attachment/<int:pk>/delete/', views.AttachmentDeleteView.as_view(), name='attachment_delete'),
     path('task/<int:pk>/attachment/', views.AttachmentCreateView.as_view(), name='attachment_create'),
     # タスクの順番替え
     path('task/sort/', views.TaskSortUpdateView.as_view(), name='task_sort'),

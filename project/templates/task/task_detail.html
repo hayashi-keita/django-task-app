@@ -49,9 +49,13 @@
     {% for attachment in object.attachments.all %}
     <div class="card mb-2 shdow-sm">
         <div class="card-body">
-            <a href="{{ attachment.file.ur }}" target="blank">
-                {{ attachment.file.name|cut:"media/"|cut:"task_files/" }}
+            <a href="{{ attachment.file.url }}" target="blank">
+                {{ attachment.file.name|cut:"task_files/" }}
             </a>
+            {% if attachment.user == request.user %}
+                <a href="{% url 'project:attachment_update' attachment.pk %}" class="btn btn-sm btn-outline-warning mx-2">編集</a>
+                <a href="{% url 'project:attachment_delete' attachment.pk %}" class="btn btn-sm btn-outline-danger">削除</a>
+            {% endif %}
         </div>
     </div>
     {% empty %}
@@ -66,7 +70,7 @@
                 <div class="mb-3">
                     {{ attachment_form.file }}
                 </div>
-                <button type="submit" class="btn btn-submit">ファイルを追加する</button>
+                <button type="submit" class="btn btn-primary">ファイルを追加する</button>
             </form>
         </div>
     </div>

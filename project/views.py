@@ -1,3 +1,4 @@
+from ast import Delete
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.models import User
@@ -6,6 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
 from accounts.models import CustomUser
+from notification.models import Notification
 from .models import Project, Task, TaskComment, TaskAttachment
 from notification.utils import create_notification
 from .forms import ProjectForm, TaskForm, TaskInprojectForm, TaskCommentForm, TaskAttachmentForm
@@ -206,10 +208,45 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
         task = get_object_or_404(Task, pk=self.kwargs['pk'])
         form.instance.task = task
         form.instance.user = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+
+        if task.assigned_to != self.request.user:
+            create_notification(
+                user=self.request.user,
+                message=f'{self.object.user} からコメントが届きました。',
+                url=self.get_success_url(),
+            )
+        return response
     
     def get_success_url(self):
         return reverse('project:task_detail', kwargs={'pk': self.object.task.pk})
+
+class CommentUpdateView(LoginRequiredMixin, UpdateView):
+    model = TaskComment
+    form_class = TaskCommentForm
+    template_name = 'task/comment_update.html'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        if obj.user != self.request.user:
+            raise PermissionDenied
+        return obj
+    
+    def get_success_url(self):
+        return reverse('project:task_detail', kwargs={'pk', self.object.task.pk})
+
+class CommentDeleteView(LoginRequiredMixin, DeleteView):
+    model = TaskComment
+    template_name = 'task/comment_delete.html'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        if obj.user != self.request.user:
+            raise PermissionDenied
+        return obj
+    
+    def get_success_url(self):
+        return reverse('project:task_delete', kwargs={'pk': self.object.task.pk})
 
 class AttachmentCreateView(LoginRequiredMixin, CreateView):
     model = TaskAttachment
@@ -219,11 +256,46 @@ class AttachmentCreateView(LoginRequiredMixin, CreateView):
         attachment = get_object_or_404(Task, pk=self.kwargs['pk'])
         form.instance.task = attachment
         form.instance.user = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+
+        if attachment.user != self.request.user:
+            create_notification(
+                user=self.request.user,
+                message=f'ファイルが添付されました。{attachment.file.name}',
+                url=self.get_success_url(),
+            )
+        return response
     
     def get_success_url(self):
-        return reverse('project:task_detail', kwargs={'pk': self.obect.task.pk})
+        return reverse('project:task_detail', kwargs={'pk': self.object.task.pk})
+
+class AttachmentUpdateView(LoginRequiredMixin, UpdateView):
+    model = TaskAttachment
+    form_class = TaskAttachmentForm
+    template_name = 'task/attachment_update.html'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        if obj.user != self.request.user:
+            raise PermissionDenied
+        return obj
     
+    def get_success_url(self):
+        return reverse('project:attachment_update', kwargs={'pk': self.object.task.pk})
+
+class AttachmentDeleteView(LoginRequiredMixin, DeleteView):
+    model = TaskAttachment
+    template_name = 'task/attachment_delete.html'
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        if obj.user != self.request.user:
+            raise PermissionDenied
+        return obj
+    
+    def get_success_url(self):
+        return reverse('project:attachment_delete', kwargs={'pk': self.object.task.pk})
+
 # AJAXでタスク順序更新
 class TaskSortUpdateView(LoginRequiredMixin, View):
     def post(self, request):

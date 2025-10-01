@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}ファイル編集{% endblock %}
+
+{% block contents %}
+<div class="container mt-4">
+    <h2 class="mb-4">添付ファイル編集</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary w-auto me-3">更新</button>
+        <a href="{% url 'project:task_detail' object.task.pk %}" class="btn btn-secondary">キャンセル</a>
+    </form>
+</div>
+{% endblock %}
