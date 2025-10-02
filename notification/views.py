@@ -1,7 +1,7 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from .models import Notification
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView
+from django.views.generic import ListView, View
 from django.views.generic.base import RedirectView
 
 class NotificationListView(LoginRequiredMixin, ListView):
@@ -11,6 +11,12 @@ class NotificationListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return Notification.objects.filter(user=self.request.user).order_by('created_at')
+
+class NotificationDeleteView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        notification = get_object_or_404(Notification, pk=pk, user=request.user)
+        notification.delete()
+        return redirect('notification:notification_list')
     
 class NotificationRedirectView(LoginRequiredMixin, RedirectView):
     parmanent = False
@@ -22,4 +28,10 @@ class NotificationRedirectView(LoginRequiredMixin, RedirectView):
         
         return notification.url
 
+class NotificationBulkDeleteView(LoginRequiredMixin, View):
+    def post(self, request):
+        pks = request.POST.getlist('selected_notifications')
+        if pks:
+            Notification.objects.filter(pk__in=pks, user=request.user).delete()    
+        return redirect('notification:notification_list')
 

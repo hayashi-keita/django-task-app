@@ -3,28 +3,56 @@
 {% block title %}通知一覧{% endblock %}
 
 {% block contents %}
-<div class="contanier mt-4">
+<div class="container mt-4">
     <h2 class="mb-4">🔔 通知一覧</h2>
     {% if object_list %}
-        <ul class="list-group">
-            {% for obj in object_list %}
-                <li class="list-group-item {% if not obj.is_read %}list-group-item-warning{% endif %}">
-                    <div>
-                        {% if not obj.is_read %}
-                            <span class="badge bg-danger me-2">未読</span>
-                        {% else %}
-                            <span class="badge bg-secondary me-2">既読</span>
-                        {% endif %}
-                    </div>
-                    {{ obj.message }}
-                    {% if obj.url %}
-                        <a href="{% url 'notification:notification_redirect' obj.pk %}" class="btn btn-primary ms-2">詳細へ</a>
-                    {% endif %}
-                    <span class="text-muted float-end">{{ obj.created_at|date:"Y-m-d H:i"}}</span>
-                </li>
-            {% endfor %}
-        </ul>
+        <!-- 一括削除フォーム -->
+        <form method="post" action="{% url 'notification:notification_bulk_delete' %}" id="bulkDeleteForm">
+            {% csrf_token %}
+            <ul class="list-group">
+                {% for obj in object_list %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center {% if not obj.is_read %}list-group-item-warning{% endif %}">
+                        <div class="d-flex align-items-center">
+                            <!-- チェックボックス -->
+                            <input type="checkbox" name="selected_notifications" value="{{ obj.pk }}" class="form-check-input me-2">
 
+                            <!-- 既読・未読表示 -->
+                            {% if not obj.is_read %}
+                                <span class="badge bg-danger me-2">未読</span>
+                            {% else %}
+                                <span class="badge bg-secondary me-2">既読</span>
+                            {% endif %}
+
+                            <!-- メッセージ -->
+                            <span>{{ obj.message }}</span>
+
+                            <!-- 詳細リンク -->
+                            {% if obj.url %}
+                                <a href="{% url 'notification:notification_redirect' obj.pk %}" class="btn btn-primary btn-sm ms-2">詳細へ</a>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex align-items-center">
+                            <!-- 作成日時 -->
+                            <span class="text-muted me-3">{{ obj.created_at|date:"Y-m-d H:i"}}</span>
+
+                            <!-- 個別削除ボタン -->
+                            <button type="submit" formaction="{% url 'notification:notification_delete' obj.pk %}" 
+                                    class="btn btn-sm btn-outline-danger deleteBtn">
+                                削除
+                            </button>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <!-- 一括削除ボタン -->
+            <div class="mt-3">
+                <button type="submit" class="btn btn-danger">選択した通知を削除</button>
+            </div>
+        </form>
+
+        <!-- ページネーション -->
         <div class="mt-3">
             {% if is_paginated %}
                 <nav>
@@ -33,7 +61,7 @@
                             <li class="page-item"><a href="?page={{ page_obj.previous_page_number }}" class="page-link">前へ</a></li>
                         {% endif %}
                         <li class="page-item disabled">
-                            <span class="page-link">ページ {{ page_obj.number }} / {{ page_obj.paginatior.num_pages }}</span>
+                            <span class="page-link">ページ {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
                         </li>
                         {% if page_obj.has_next %}
                             <li class="page-item"><a href="?page={{ page_obj.next_page_number }}" class="page-link">次へ</a></li>
@@ -46,4 +74,27 @@
         通知はありません。
     {% endif %}
 </div>
+
+<!-- JS で確認ダイアログ -->
+<script>
+    // 個別削除確認
+    document.querySelectorAll(".deleteBtn").forEach(btn => {
+        btn.addEventListener("click", function(e) {
+            if (!confirm("この通知を削除しますか？")) {
+                e.preventDefault();
+            }
+        });
+    });
+
+    // 一括削除確認
+    document.getElementById("bulkDeleteForm").addEventListener("submit", function(e) {
+        if (e.submitter && e.submitter.classList.contains("deleteBtn")) {
+            // 個別削除はここで処理されるのでスルー
+            return;
+        }
+        if (!confirm("選択した通知をまとめて削除しますか？")) {
+            e.preventDefault();
+        }
+    });
+</script>
 {% endblock %}

@@ -24,6 +24,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('', include('project.urls')),
     path('notification/', include('notification.urls')),
+    path('schedule/', include('schedule.urls')),
 ]
 
 if settings.DEBUG:

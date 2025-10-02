@@ -4,75 +4,95 @@
 
 {% block contents %}
 <div class="container mt-4">
-    <div class="card mb-4 shadow-sm">
-        <div class="card-body">
-            <h2 class="card-title mb-4">{{ object.title }}</h2>
-            
-            <p><strong>担当者：</strong>{{ object.assigned_to }}</p>
-            <p><strong>ステータス：</strong>{{ object.get_status_display }}</p>
-            <p><strong>期限：</strong>{{ object.due_date }}</p>
-            <p class="text-muted"><i>{{ object.description }}</i></p>
-        
-            <a href="{% url 'project:task_update' object.pk %}" class="btn btn-primary btn-sm me-2">編集</a>
-            <a href="{% url 'project:task_delete' object.pk %}" class="btn btn-danger btn-sm">削除</a>
-        </div>
-    </div>
-    <h5>コメント一覧</h5>
-    {% for comment in object.comments.all %}
-        <div class="card mb-2 shadow-sm">
-            <div class="card-body">
-                <strong>{{ comment.user }}</strong> <small class="text-muted">{{ comment.created_at }}</small>
-                <p class="card-text">{{ comment.content }}</p>
-                {% if comment.user == request.user %}
-                    <a href="{% url 'project:comment_update' comment.pk %}" class="btn btn-sm btn-outline-warning me-2">編集</a>
-                    <a href="{% url 'project:comment_delete' comment.pk %}" class="btn btn-sm btn-outline-danger">削除</a>
-                {% endif %}
+    <div class="row align-items-stretch">
+        <!-- 左カラム: タスク詳細 -->
+        <div class="col-md-8 mb-4">
+            <div class="card h-100 shadow-sm" style="background-color:#f8f9fa;">
+                <div class="card-body">
+                    <h2 class="card-title mb-4 text-primary">{{ object.title }}</h2>
+                    <p><strong>担当者：</strong>{{ object.assigned_to }}</p>
+                    <p><strong>ステータス：</strong>{{ object.get_status_display }}</p>
+                    <p><strong>期限：</strong>{{ object.due_date }}</p>
+                    <p class="text-muted"><i>{{ object.description }}</i></p>
+                    <a href="{% url 'project:task_update' object.pk %}" class="btn btn-primary btn-sm me-2">編集</a>
+                    <a href="{% url 'project:task_delete' object.pk %}" class="btn btn-danger btn-sm">削除</a>
+                </div>
             </div>
         </div>
-    {% empty %}
-        まだコメントはありません。
-    {% endfor %}
-    <div class="card mt-4 mb-4 shadow-sm">
-        <div class="card-body">
-            <h6>コメント追加</h6>
-            <form method="post" action="{% url 'project:comment_create' object.pk %}">
-                {% csrf_token %}
-                <div class="mb-3">
-                    {{ comment_form.content }}
-                </div>
-                <button type="submit" class="btn btn-primary">コメントする</button>
-            </form>
-        </div>
-    </div>
 
-    <h5>添付ファイル一覧</h5>
-    {% for attachment in object.attachments.all %}
-    <div class="card mb-2 shdow-sm">
-        <div class="card-body">
-            <a href="{{ attachment.file.url }}" target="blank">
-                {{ attachment.file.name|cut:"task_files/" }}
-            </a>
-            {% if attachment.user == request.user %}
-                <a href="{% url 'project:attachment_update' attachment.pk %}" class="btn btn-sm btn-outline-warning mx-2">編集</a>
-                <a href="{% url 'project:attachment_delete' attachment.pk %}" class="btn btn-sm btn-outline-danger">削除</a>
-            {% endif %}
-        </div>
-    </div>
-    {% empty %}
-        まだ画像はありません。
-    {% endfor %}
-
-    <div class="card mt-4 mb-4 shadow-sm">
-        <div class="card-body">
-            <h6>ファイル追加</h6>
-            <form method="post" enctype="multipart/form-data" action="{% url 'project:attachment_create' object.pk %}">
-                {% csrf_token %}
-                <div class="mb-3">
-                    {{ attachment_form.file }}
+        <!-- 右カラム: コメント + 添付ファイル -->
+        <div class="col-md-4 mb-3 d-flex flex-column">
+            <div class="h-100 d-flex flex-column">
+                
+                <!-- コメント一覧スクロール -->
+                <div class="flex-grow-1 overflow-auto mb-3">
+                    <h5>コメント一覧</h5>
+                    {% for comment in object.comments.all %}
+                    <div class="card mb-2 shadow-sm" style="background-color:#f8f9fa;">
+                        <div class="card-body">
+                            <strong>{{ comment.user }}</strong> 
+                            <small class="text-muted">{{ comment.created_at }}</small>
+                            <p class="card-text">{{ comment.content }}</p>
+                            {% if comment.user == request.user %}
+                                <a href="{% url 'project:comment_update' comment.pk %}" class="btn btn-sm btn-outline-warning me-2">編集</a>
+                                <a href="{% url 'project:comment_delete' comment.pk %}" class="btn btn-sm btn-outline-danger">削除</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                        まだコメントはありません。
+                    {% endfor %}
                 </div>
-                <button type="submit" class="btn btn-primary">ファイルを追加する</button>
-            </form>
+
+                <!-- コメント追加フォーム -->
+                <div class="card mb-3 shadow-sm" style="background-color:#f8f9fa;">
+                    <div class="card-body">
+                        <h6>コメント追加</h6>
+                        <form method="post" action="{% url 'project:comment_create' object.pk %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                {{ comment_form.content }}
+                            </div>
+                            <button type="submit" class="btn btn-primary">コメントする</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 添付ファイル一覧スクロール -->
+                <div class="flex-grow-1 overflow-auto mt-3 mb-3">
+                    <h5>添付ファイル一覧</h5>
+                    {% for attachment in object.attachments.all %}
+                    <div class="card mb-2 shadow-sm" style="background-color:#f8f9fa;">
+                        <div class="card-body">
+                            <a href="{{ attachment.file.url }}" target="_blank">
+                                {{ attachment.file.name|cut:"task_files/" }}
+                            </a>
+                            {% if attachment.user == request.user %}
+                                <a href="{% url 'project:attachment_update' attachment.pk %}" class="btn btn-sm btn-outline-warning mx-2">編集</a>
+                                <a href="{% url 'project:attachment_delete' attachment.pk %}" class="btn btn-sm btn-outline-danger">削除</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                        まだ画像はありません。
+                    {% endfor %}
+
+                    <!-- ファイル追加フォーム -->
+                    <div class="card mt-3 mb-3 shadow-sm" style="background-color:#f8f9fa;">
+                        <div class="card-body">
+                            <h6>ファイル追加</h6>
+                            <form method="post" enctype="multipart/form-data" action="{% url 'project:attachment_create' object.pk %}">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    {{ attachment_form.file }}
+                                </div>
+                                <button type="submit" class="btn btn-primary">ファイルを追加する</button>
+                            </form>
+                        </div>
+                    </div>
+                </div> <!-- 添付スクロール終了 -->
+            </div> <!-- 右カラム flex終了 -->
         </div>
-    </div>
-</div>
+    </div> <!-- row終了 -->
+</div> <!-- container終了 -->
 {% endblock %}

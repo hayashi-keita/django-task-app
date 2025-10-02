@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'project.apps.ProjectConfig',
     'accounts.apps.AccountsConfig',
     'notification.apps.NotificationConfig',
+    'schedule.apps.ScheduleConfig',
 ]
 
 MIDDLEWARE = [
