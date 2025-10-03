@@ -15,5 +15,5 @@ class EventForm(forms.ModelForm):
                 attrs={'type': 'datetime-local', 'class': 'form-control'},
                 format='%Y-%m-%dT%H:%M',
             ),
-            'description': forms.Textarea(attrs={'class': 'from-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control'}),
         }

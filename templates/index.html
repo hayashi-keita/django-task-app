@@ -44,5 +44,19 @@
             </div>
         </div>
     </div>
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
+        <div class="card h-100 shadow-sm text-center">
+            <div class="card-body">
+                <h5 class="card-title">スケジュール</h5>
+                <p class="card-text">スケジュール登録・編集・削除の機能が使用できます。</p>
+                {% if request.user.is_authenticated %}
+                    <a href="{% url 'schedule:dashboard' %}" class="btn btn-success">ダッシュボード</a>
+                    <a href="{% url 'schedule:event_list' %}" class="btn btn-success">予定一覧</a>
+                {% else %}    
+                    <a href="{% url 'accounts:signup' %}" class="btn btn-success">アカウント登録</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
